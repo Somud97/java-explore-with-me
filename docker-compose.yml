@@ -22,6 +22,7 @@ services:
       - stats-db
 
   ewm-service:
+    image: nginx:alpine
     ports:
       - "8080:8080"
 
