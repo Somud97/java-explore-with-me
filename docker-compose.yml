@@ -1,12 +1,28 @@
 services:
-  stats-server:
-    ports:
-      - "9090:9090"
-
   stats-db:
     image: postgres:16.1
+    container_name: stats-db
+    environment:
+      POSTGRES_DB: stats
+      POSTGRES_USER: stats
+      POSTGRES_PASSWORD: stats
+    ports:
+      - "5432:5432"
+
+  stats-server:
+    build: ./stats/stats-server
+    container_name: stats-server
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://stats-db:5432/stats
+      SPRING_DATASOURCE_USERNAME: stats
+      SPRING_DATASOURCE_PASSWORD: stats
+    ports:
+      - "9090:9090"
+    depends_on:
+      - stats-db
 
   ewm-service:
+    image: nginx:alpine
     ports:
       - "8080:8080"
 
