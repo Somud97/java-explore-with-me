@@ -26,7 +26,6 @@ import ru.practicum.ewm.repository.EventRepository;
 import ru.practicum.ewm.repository.ParticipationRequestRepository;
 import ru.practicum.ewm.repository.UserRepository;
 import ru.practicum.ewm.service.EventService;
-import ru.practicum.ewm.service.StatsHitService;
 import ru.practicum.ewm.util.StatsViewHelper;
 import ru.practicum.statsclient.StatsClient;
 import ru.practicum.statsdto.ViewStatsDto;
@@ -51,7 +50,6 @@ public class EventServiceImpl implements EventService {
     private final CategoryRepository categoryRepository;
     private final ParticipationRequestRepository participationRequestRepository;
     private final StatsClient statsClient;
-    private final StatsHitService statsHitService;
 
     @Override
     @Transactional
@@ -260,19 +258,7 @@ public class EventServiceImpl implements EventService {
             return StatsViewHelper.eventViewsFromStats(stats);
         } catch (Exception e) {
             log.warn("Не удалось получить статистику просмотров: {}", e.getMessage());
-            Map<Long, Long> fallback = new HashMap<>();
-            for (String uri : uris) {
-                long hits = statsHitService.getLocalHits(uri);
-                if (hits <= 0) continue;
-                if (uri != null && uri.startsWith("/events/")) {
-                    try {
-                        long eventId = Long.parseLong(uri.substring("/events/".length()));
-                        fallback.put(eventId, hits);
-                    } catch (NumberFormatException ignore) {
-                    }
-                }
-            }
-            return fallback;
+            return new HashMap<>();
         }
     }
 
