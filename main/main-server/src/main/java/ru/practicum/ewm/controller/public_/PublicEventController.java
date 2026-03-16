@@ -37,10 +37,10 @@ public class PublicEventController {
                                            @RequestParam(defaultValue = "0") int from,
                                            @RequestParam(defaultValue = "10") int size,
                                            HttpServletRequest request) {
-        List<EventShortDto> events = eventService.getEventsPublic(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size);
-        for (EventShortDto e : events) {
-            statsHitService.hit("/events/" + e.getId(), request);
-        }
+        List<EventShortDto> events = eventService.getEventsPublic(text, categories, paid, rangeStart,
+                rangeEnd, onlyAvailable, sort, from, size);
+        // согласно спецификации, фиксируем сам запрос к эндпоинту /events
+        statsHitService.hit(request.getRequestURI(), request);
         return events;
     }
 

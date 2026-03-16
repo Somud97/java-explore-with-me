@@ -197,7 +197,6 @@ public class EventServiceImpl implements EventService {
         if (rangeStart != null && rangeEnd != null && rangeStart.isAfter(rangeEnd)) {
             throw new BadRequestException("rangeStart не может быть позже rangeEnd.");
         }
-        // По спецификации: если диапазон не указан — только события в будущем
         LocalDateTime start = rangeStart;
         LocalDateTime end = rangeEnd;
         if (start == null && end == null) {
@@ -210,11 +209,14 @@ public class EventServiceImpl implements EventService {
             end = LocalDateTime.of(3000, 1, 1, 0, 0);
         }
         Boolean only = onlyAvailable != null ? onlyAvailable : false;
-        Sort order = "VIEWS".equalsIgnoreCase(sort)
-                ? Sort.unsorted()
-                : Sort.unsorted();
+        Sort sortSpec;
+        if ("EVENT_DATE".equalsIgnoreCase(sort)) {
+            sortSpec = Sort.by(Sort.Direction.ASC, "eventDate");
+        } else {
+            sortSpec = Sort.unsorted();
+        }
         List<Event> events = eventRepository.findPublicEvents(text, categories, paid, start, end, only,
-                PageRequest.of(from / size, size));
+                PageRequest.of(from / size, size, sortSpec));
         List<EventShortDto> shortList = toShortWithStats(events);
         if ("VIEWS".equalsIgnoreCase(sort)) {
             shortList.sort((a, b) -> Long.compare(b.getViews(), a.getViews()));
