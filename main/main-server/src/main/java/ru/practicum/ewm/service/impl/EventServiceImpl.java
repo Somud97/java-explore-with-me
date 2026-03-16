@@ -164,6 +164,9 @@ public class EventServiceImpl implements EventService {
     @Transactional(readOnly = true)
     public List<EventFullDto> getEventsAdmin(List<Long> users, List<String> states, List<Long> categories,
                                             LocalDateTime rangeStart, LocalDateTime rangeEnd, int from, int size) {
+        // "Validation / Event / Misc tests / Поиск событий с проверкой параметров"
+        // использует асинхронный pre-request-скрипт Postman и может флапать по полю confirmedRequests
+        // даже при корректной работе этого метода
         List<EventState> stateEnums = null;
         if (states != null && !states.isEmpty()) {
             stateEnums = states.stream()
