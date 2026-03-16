@@ -84,7 +84,6 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
         if (!request.getRequester().getId().equals(userId)) {
             throw new NotFoundException("Заявка не найдена.");
         }
-        
         if (request.getStatus() != ParticipationRequestStatus.PENDING) {
             throw new ConflictException("Нельзя отменить заявку, по которой уже принято решение.");
         }
