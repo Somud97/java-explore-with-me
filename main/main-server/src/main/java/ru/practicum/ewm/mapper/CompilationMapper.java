@@ -5,7 +5,6 @@ import ru.practicum.ewm.dto.EventShortDto;
 import ru.practicum.ewm.model.Compilation;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public final class CompilationMapper {
 

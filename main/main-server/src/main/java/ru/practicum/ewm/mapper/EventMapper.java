@@ -1,16 +1,13 @@
 package ru.practicum.ewm.mapper;
 
-import ru.practicum.ewm.dto.CategoryDto;
 import ru.practicum.ewm.dto.EventFullDto;
 import ru.practicum.ewm.dto.EventShortDto;
 import ru.practicum.ewm.dto.LocationDto;
-import ru.practicum.ewm.dto.UserShortDto;
 import ru.practicum.ewm.model.Event;
 
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Маппинг Event -> DTO. Формат дат по спецификации: yyyy-MM-dd HH:mm:ss.
