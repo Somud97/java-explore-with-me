@@ -17,6 +17,7 @@ import ru.practicum.ewm.repository.CompilationRepository;
 import ru.practicum.ewm.repository.EventRepository;
 import ru.practicum.ewm.repository.ParticipationRequestRepository;
 import ru.practicum.ewm.service.CompilationService;
+import ru.practicum.ewm.service.StatsHitService;
 import ru.practicum.ewm.util.StatsViewHelper;
 import ru.practicum.ewm.model.ParticipationRequestStatus;
 import ru.practicum.statsclient.StatsClient;
@@ -36,6 +37,7 @@ public class CompilationServiceImpl implements CompilationService {
     private final EventRepository eventRepository;
     private final ParticipationRequestRepository participationRequestRepository;
     private final StatsClient statsClient;
+    private final StatsHitService statsHitService;
 
     @Override
     @Transactional
@@ -116,7 +118,19 @@ public class CompilationServiceImpl implements CompilationService {
                     uris, false);
             return StatsViewHelper.eventViewsFromStats(stats);
         } catch (Exception e) {
-            return new HashMap<>();
+            Map<Long, Long> fallback = new HashMap<>();
+            for (String uri : uris) {
+                long hits = statsHitService.getLocalHits(uri);
+                if (hits <= 0) continue;
+                if (uri != null && uri.startsWith("/events/")) {
+                    try {
+                        long eventId = Long.parseLong(uri.substring("/events/".length()));
+                        fallback.put(eventId, hits);
+                    } catch (NumberFormatException ignore) {
+                    }
+                }
+            }
+            return fallback;
         }
     }
 }

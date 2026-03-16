@@ -10,6 +10,8 @@ import ru.practicum.statsdto.EndpointHitDto;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Отправка hit в сервис статистики при обращении к публичным эндпоинтам событий.
@@ -23,10 +25,13 @@ public class StatsHitService {
 
     private final StatsClient statsClient;
 
+    private final ConcurrentMap<String, Long> localHits = new ConcurrentHashMap<>();
+
     @Value("${spring.application.name:ewm-main-service}")
     private String appName;
 
     public void hit(String uri, HttpServletRequest request) {
+        localHits.merge(uri, 1L, Long::sum);
         try {
             EndpointHitDto dto = new EndpointHitDto();
             dto.setApp(appName);
@@ -37,6 +42,10 @@ public class StatsHitService {
         } catch (Exception e) {
             log.warn("Не удалось отправить hit в stats: {}", e.getMessage());
         }
+    }
+
+    public long getLocalHits(String uri) {
+        return localHits.getOrDefault(uri, 0L);
     }
 
     private String getClientIp(HttpServletRequest request) {
