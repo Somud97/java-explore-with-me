@@ -170,7 +170,9 @@ public class EventServiceImpl implements EventService {
                     .map(EventState::valueOf)
                     .collect(Collectors.toList());
         }
-        List<Event> events = eventRepository.findAdminEvents(users, stateEnums, categories, rangeStart, rangeEnd,
+        LocalDateTime start = rangeStart != null ? rangeStart : LocalDateTime.of(1900, 1, 1, 0, 0);
+        LocalDateTime end = rangeEnd != null ? rangeEnd : LocalDateTime.of(3000, 1, 1, 0, 0);
+        List<Event> events = eventRepository.findAdminEvents(users, stateEnums, categories, start, end,
                 PageRequest.of(from / size, size, Sort.by(Sort.Direction.ASC, "id")));
         List<Long> confirmedList = new ArrayList<>();
         List<Long> viewsList = new ArrayList<>();
@@ -200,6 +202,12 @@ public class EventServiceImpl implements EventService {
         LocalDateTime end = rangeEnd;
         if (start == null && end == null) {
             start = LocalDateTime.now();
+        }
+        if (start == null) {
+            start = LocalDateTime.of(1900, 1, 1, 0, 0);
+        }
+        if (end == null) {
+            end = LocalDateTime.of(3000, 1, 1, 0, 0);
         }
         Boolean only = onlyAvailable != null ? onlyAvailable : false;
         Sort order = "VIEWS".equalsIgnoreCase(sort)
