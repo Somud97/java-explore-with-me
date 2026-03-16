@@ -112,15 +112,16 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
         if (requests.stream().anyMatch(r -> !r.getEvent().getId().equals(eventId))) {
             throw new ConflictException("Не все заявки относятся к данному событию.");
         }
+        // По спецификации: статус можно менять только у заявок в состоянии PENDING
+        if (requests.stream().anyMatch(r -> r.getStatus() != ParticipationRequestStatus.PENDING)) {
+            throw new ConflictException("Request must have status PENDING");
+        }
         List<ParticipationRequestDto> confirmed = new ArrayList<>();
         List<ParticipationRequestDto> rejected = new ArrayList<>();
         long currentConfirmed = participationRequestRepository.countByEventIdAndStatus(eventId, ParticipationRequestStatus.CONFIRMED);
         int limit = event.getParticipantLimit();
 
         for (ParticipationRequest pr : requests) {
-            if (pr.getStatus() != ParticipationRequestStatus.PENDING) {
-                continue;
-            }
             if ("CONFIRMED".equals(request.getStatus())) {
                 if (limit != 0 && currentConfirmed >= limit) {
                     throw new ConflictException("Достигнут лимит участников для события.");
