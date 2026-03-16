@@ -113,7 +113,7 @@ public class CompilationServiceImpl implements CompilationService {
             List<ViewStatsDto> stats = statsClient.getStats(
                     java.time.LocalDateTime.now().minusYears(1),
                     java.time.LocalDateTime.now().plusMinutes(1),
-                    uris, true);
+                    uris, false);
             return StatsViewHelper.eventViewsFromStats(stats);
         } catch (Exception e) {
             return new HashMap<>();

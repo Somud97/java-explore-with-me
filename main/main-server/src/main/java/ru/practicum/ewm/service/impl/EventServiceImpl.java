@@ -246,7 +246,7 @@ public class EventServiceImpl implements EventService {
         LocalDateTime from = start != null ? start : LocalDateTime.now().minusYears(1);
         LocalDateTime to = end != null ? end : LocalDateTime.now().plusMinutes(1);
         try {
-            List<ViewStatsDto> stats = statsClient.getStats(from, to, uris, true);
+            List<ViewStatsDto> stats = statsClient.getStats(from, to, uris, false);
             return StatsViewHelper.eventViewsFromStats(stats);
         } catch (Exception e) {
             log.warn("Не удалось получить статистику просмотров: {}", e.getMessage());
