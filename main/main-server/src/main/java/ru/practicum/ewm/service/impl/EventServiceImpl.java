@@ -211,10 +211,10 @@ public class EventServiceImpl implements EventService {
         }
         Boolean only = onlyAvailable != null ? onlyAvailable : false;
         Sort order = "VIEWS".equalsIgnoreCase(sort)
-                ? Sort.by(Sort.Direction.DESC, "id") // сортировка по views будет после запроса к stats
-                : Sort.by(Sort.Direction.ASC, "eventDate");
+                ? Sort.unsorted()
+                : Sort.unsorted();
         List<Event> events = eventRepository.findPublicEvents(text, categories, paid, start, end, only,
-                PageRequest.of(from / size, size, order));
+                PageRequest.of(from / size, size));
         List<EventShortDto> shortList = toShortWithStats(events);
         if ("VIEWS".equalsIgnoreCase(sort)) {
             shortList.sort((a, b) -> Long.compare(b.getViews(), a.getViews()));

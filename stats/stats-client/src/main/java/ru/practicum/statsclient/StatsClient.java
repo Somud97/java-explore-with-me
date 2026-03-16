@@ -13,8 +13,6 @@ import ru.practicum.statsdto.ViewStatsDto;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -78,15 +76,11 @@ public class StatsClient {
                 if (!first) {
                     sb.append("&");
                 }
-                sb.append(encode(key)).append("=").append(encode(value));
+                sb.append(key).append("=").append(value);
                 first = false;
             }
         }
         return sb.toString();
-    }
-
-    private String encode(String value) {
-        return URLEncoder.encode(value, StandardCharsets.UTF_8);
     }
 }
 

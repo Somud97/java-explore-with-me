@@ -42,7 +42,8 @@ public interface EventRepository extends JpaRepository<Event, Long> {
                     "AND e.event_date <= :rangeEnd " +
                     "AND (:onlyAvailable = FALSE OR e.participant_limit = 0 OR " +
                     "     (SELECT COUNT(pr.id) FROM participation_requests pr " +
-                    "      WHERE pr.event_id = e.id AND pr.status = 'CONFIRMED') < e.participant_limit)",
+                    "      WHERE pr.event_id = e.id AND pr.status = 'CONFIRMED') < e.participant_limit) " +
+                    "ORDER BY e.event_date ASC",
             nativeQuery = true
     )
     List<Event> findPublicEvents(@Param("text") String text,
