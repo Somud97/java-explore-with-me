@@ -84,6 +84,9 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
         if (!request.getRequester().getId().equals(userId)) {
             throw new NotFoundException("Заявка не найдена.");
         }
+        if (request.getStatus() == ParticipationRequestStatus.CONFIRMED) {
+            throw new ConflictException("Нельзя отменить уже подтверждённую заявку.");
+        }
         request.setStatus(ParticipationRequestStatus.CANCELED);
         request = participationRequestRepository.save(request);
         return ParticipationRequestMapper.toDto(request);
@@ -119,13 +122,11 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
             }
             if ("CONFIRMED".equals(request.getStatus())) {
                 if (limit != 0 && currentConfirmed >= limit) {
-                    pr.setStatus(ParticipationRequestStatus.REJECTED);
-                    rejected.add(ParticipationRequestMapper.toDto(participationRequestRepository.save(pr)));
-                } else {
-                    pr.setStatus(ParticipationRequestStatus.CONFIRMED);
-                    confirmed.add(ParticipationRequestMapper.toDto(participationRequestRepository.save(pr)));
-                    currentConfirmed++;
+                    throw new ConflictException("Достигнут лимит участников для события.");
                 }
+                pr.setStatus(ParticipationRequestStatus.CONFIRMED);
+                confirmed.add(ParticipationRequestMapper.toDto(participationRequestRepository.save(pr)));
+                currentConfirmed++;
             } else if ("REJECTED".equals(request.getStatus())) {
                 pr.setStatus(ParticipationRequestStatus.REJECTED);
                 rejected.add(ParticipationRequestMapper.toDto(participationRequestRepository.save(pr)));

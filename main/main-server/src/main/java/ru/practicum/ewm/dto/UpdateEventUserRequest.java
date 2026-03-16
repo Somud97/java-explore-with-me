@@ -2,6 +2,7 @@ package ru.practicum.ewm.dto;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -29,6 +30,7 @@ public class UpdateEventUserRequest {
     private LocationDto location;
 
     private Boolean paid;
+    @PositiveOrZero
     private Integer participantLimit;
     private Boolean requestModeration;
     private String stateAction; // SEND_TO_REVIEW, CANCEL_REVIEW
