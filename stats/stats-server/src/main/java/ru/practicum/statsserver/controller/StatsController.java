@@ -43,6 +43,10 @@ public class StatsController {
                                        @RequestParam(defaultValue = "false") boolean unique) {
         LocalDateTime startDt = LocalDateTime.parse(start, FORMATTER);
         LocalDateTime endDt = LocalDateTime.parse(end, FORMATTER);
+        // По спецификации: start не может быть позже end
+        if (startDt.isAfter(endDt)) {
+            throw new IllegalArgumentException("start must be before end");
+        }
         return statsService.getStats(startDt, endDt, uris, unique);
     }
 }
