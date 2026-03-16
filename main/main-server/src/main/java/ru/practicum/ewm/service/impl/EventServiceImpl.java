@@ -209,11 +209,20 @@ public class EventServiceImpl implements EventService {
             end = LocalDateTime.of(3000, 1, 1, 0, 0);
         }
         Boolean only = onlyAvailable != null ? onlyAvailable : false;
-        // В native-запросе уже есть ORDER BY e.event_date ASC,
-        // дополнительная сортировка через Sort приведёт к некорректному SQL (e.eventdate).
         List<Event> events = eventRepository.findPublicEvents(text, categories, paid, start, end, only,
                 PageRequest.of(from / size, size));
-        List<EventShortDto> shortList = toShortWithStats(events);
+        // Жёсткая доп. фильтрация по параметрам запроса,
+        // чтобы в ответе не было ни одного события, противоречащего text/categories/paid.
+        List<Event> strictlyFiltered = events.stream()
+                .filter(e -> text == null
+                        || (e.getAnnotation() != null
+                        && e.getAnnotation().toLowerCase().contains(text.toLowerCase())))
+                .filter(e -> categories == null
+                        || categories.isEmpty()
+                        || categories.contains(e.getCategory().getId()))
+                .filter(e -> paid == null || e.getPaid().equals(paid))
+                .collect(Collectors.toList());
+        List<EventShortDto> shortList = toShortWithStats(strictlyFiltered);
         if ("VIEWS".equalsIgnoreCase(sort)) {
             shortList.sort((a, b) -> Long.compare(b.getViews(), a.getViews()));
         }
