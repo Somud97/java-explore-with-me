@@ -209,14 +209,10 @@ public class EventServiceImpl implements EventService {
             end = LocalDateTime.of(3000, 1, 1, 0, 0);
         }
         Boolean only = onlyAvailable != null ? onlyAvailable : false;
-        Sort sortSpec;
-        if ("EVENT_DATE".equalsIgnoreCase(sort)) {
-            sortSpec = Sort.by(Sort.Direction.ASC, "eventDate");
-        } else {
-            sortSpec = Sort.unsorted();
-        }
+        // В native-запросе уже есть ORDER BY e.event_date ASC,
+        // дополнительная сортировка через Sort приведёт к некорректному SQL (e.eventdate).
         List<Event> events = eventRepository.findPublicEvents(text, categories, paid, start, end, only,
-                PageRequest.of(from / size, size, sortSpec));
+                PageRequest.of(from / size, size));
         List<EventShortDto> shortList = toShortWithStats(events);
         if ("VIEWS".equalsIgnoreCase(sort)) {
             shortList.sort((a, b) -> Long.compare(b.getViews(), a.getViews()));
