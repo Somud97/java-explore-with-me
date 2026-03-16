@@ -37,8 +37,11 @@ public class PublicEventController {
                                            @RequestParam(defaultValue = "0") int from,
                                            @RequestParam(defaultValue = "10") int size,
                                            HttpServletRequest request) {
-        statsHitService.hit(request.getRequestURI() + (request.getQueryString() != null ? "?" + request.getQueryString() : ""), request);
-        return eventService.getEventsPublic(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size);
+        List<EventShortDto> events = eventService.getEventsPublic(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size);
+        for (EventShortDto e : events) {
+            statsHitService.hit("/events/" + e.getId(), request);
+        }
+        return events;
     }
 
     @GetMapping("/{id}")

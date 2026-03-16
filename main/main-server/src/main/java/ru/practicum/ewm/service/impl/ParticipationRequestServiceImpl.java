@@ -84,9 +84,8 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
         if (!request.getRequester().getId().equals(userId)) {
             throw new NotFoundException("Заявка не найдена.");
         }
-        // Любой статус, отличный от PENDING, означает, что по заявке уже принято решение,
-        // поэтому повторная попытка отмены должна приводить к 409.
-        if (request.getStatus() == ParticipationRequestStatus.CONFIRMED) {
+        
+        if (request.getStatus() != ParticipationRequestStatus.PENDING) {
             throw new ConflictException("Нельзя отменить заявку, по которой уже принято решение.");
         }
         request.setStatus(ParticipationRequestStatus.CANCELED);
