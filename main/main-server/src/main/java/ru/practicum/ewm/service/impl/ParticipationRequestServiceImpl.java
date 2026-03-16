@@ -84,8 +84,13 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
         if (!request.getRequester().getId().equals(userId)) {
             throw new NotFoundException("Заявка не найдена.");
         }
-        // Для эксперимента: всегда считаем, что отмена заявки невозможна
-        throw new ConflictException("Нельзя отменить заявку, по которой уже принято решение.");
+        if (request.getStatus() != ParticipationRequestStatus.PENDING) {
+            // Попытка отменить уже подтверждённую / отклонённую / отменённую ранее заявку
+            throw new ConflictException("Нельзя отменить заявку, по которой уже принято решение.");
+        }
+        request.setStatus(ParticipationRequestStatus.CANCELED);
+        request = participationRequestRepository.save(request);
+        return ParticipationRequestMapper.toDto(request);
     }
 
     @Override
