@@ -4,7 +4,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import ru.practicum.statsclient.StatsClient;
 import ru.practicum.statsdto.EndpointHitDto;
@@ -27,7 +26,6 @@ public class StatsHitService {
     @Value("${spring.application.name:ewm-main-service}")
     private String appName;
 
-    @Async
     public void hit(String uri, HttpServletRequest request) {
         try {
             EndpointHitDto dto = new EndpointHitDto();
