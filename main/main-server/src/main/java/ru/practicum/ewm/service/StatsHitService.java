@@ -28,10 +28,13 @@ public class StatsHitService {
 
     public void hit(String uri, HttpServletRequest request) {
         try {
+            String safeApp = truncate(appName, 255);
+            String safeUri = truncate(uri, 255);
+            String ip = truncate(getClientIp(request), 255);
             EndpointHitDto dto = new EndpointHitDto();
-            dto.setApp(appName);
-            dto.setUri(uri);
-            dto.setIp(getClientIp(request));
+            dto.setApp(safeApp);
+            dto.setUri(safeUri);
+            dto.setIp(ip);
             dto.setTimestamp(LocalDateTime.now().format(FORMATTER));
             statsClient.hit(dto);
         } catch (Exception e) {
@@ -45,5 +48,12 @@ public class StatsHitService {
             return xff.split(",")[0].trim();
         }
         return request.getRemoteAddr() != null ? request.getRemoteAddr() : "unknown";
+    }
+
+    private String truncate(String value, int maxLength) {
+        if (value == null) {
+            return null;
+        }
+        return value.length() > maxLength ? value.substring(0, maxLength) : value;
     }
 }
