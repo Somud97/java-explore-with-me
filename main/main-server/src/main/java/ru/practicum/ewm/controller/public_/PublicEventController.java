@@ -8,8 +8,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import ru.practicum.ewm.dto.CommentDto;
 import ru.practicum.ewm.dto.EventFullDto;
 import ru.practicum.ewm.dto.EventShortDto;
+import ru.practicum.ewm.service.CommentService;
 import ru.practicum.ewm.service.EventService;
 import ru.practicum.ewm.service.StatsHitService;
 
@@ -25,6 +27,7 @@ public class PublicEventController {
 
     private final EventService eventService;
     private final StatsHitService statsHitService;
+    private final CommentService commentService;
 
     @GetMapping
     public List<EventShortDto> getEvents_1(@RequestParam(required = false) String text,
@@ -48,5 +51,13 @@ public class PublicEventController {
     public EventFullDto getEvent_1(@PathVariable Long id, HttpServletRequest request) {
         statsHitService.hit("/events/" + id, request);
         return eventService.getEventPublic(id);
+    }
+
+    @GetMapping("/{id}/comments")
+    public List<CommentDto> getEventComments(@PathVariable Long id,
+                                             @RequestParam(defaultValue = "0") int from,
+                                             @RequestParam(defaultValue = "10") int size) {
+        int safeSize = size <= 0 ? 10 : size;
+        return commentService.getEventComments(id, from, safeSize);
     }
 }
