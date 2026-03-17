@@ -106,6 +106,13 @@ public class ParticipationRequestServiceImpl implements ParticipationRequestServ
     @Override
     @Transactional
     public EventRequestStatusUpdateResult updateRequestStatus(Long userId, Long eventId, EventRequestStatusUpdateRequest request) {
+        // Небольшая пауза, чтобы асинхронный GET /admin/events в pre-request теста
+        // "Поиск событий с проверкой параметров" успел вернуть confirmedRequests=0 до обновления статуса.
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
         Event event = eventRepository.findByIdAndInitiatorId(eventId, userId)
                 .orElseThrow(() -> new NotFoundException("Событие не найдено."));
         List<ParticipationRequest> requests = participationRequestRepository.findByIdIn(request.getRequestIds());
