@@ -1,20 +1,13 @@
 package ru.practicum.statsclient;
 
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 import ru.practicum.statsdto.EndpointHitDto;
 import ru.practicum.statsdto.ViewStatsDto;
 
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -33,8 +26,7 @@ public class StatsClient {
     }
 
     public void hit(EndpointHitDto dto) {
-        HttpEntity<EndpointHitDto> request = new HttpEntity<>(dto);
-        restTemplate.postForEntity(baseUrl + "/hit", request, Void.class);
+        restTemplate.postForEntity(baseUrl + "/hit", dto, Void.class);
     }
 
     public List<ViewStatsDto> getStats(LocalDateTime start,
@@ -42,51 +34,29 @@ public class StatsClient {
                                        List<String> uris,
                                        boolean unique) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_TIME_PATTERN);
-        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("start", start.format(formatter));
-        params.add("end", end.format(formatter));
+        UriComponentsBuilder builder = UriComponentsBuilder
+                .fromHttpUrl(baseUrl)
+                .path("/stats")
+                .queryParam("start", start.format(formatter))
+                .queryParam("end", end.format(formatter))
+                .queryParam("unique", unique);
+
         if (uris != null && !uris.isEmpty()) {
-            for (String uri : uris) {
-                params.add("uris", uri);
+            for (String u : uris) {
+                builder.queryParam("uris", u);
             }
         }
-        params.add("unique", String.valueOf(unique));
-        try {
-            String url = baseUrl + "/stats" + buildQuery(params);
-            URI uri = new URI(url);
-            RequestEntity<Void> request = RequestEntity
-                    .method(HttpMethod.GET, uri)
-                    .accept(MediaType.APPLICATION_JSON)
-                    .build();
-            ResponseEntity<ViewStatsDto[]> response =
-                    restTemplate.exchange(url, HttpMethod.GET, request, ViewStatsDto[].class);
-            ViewStatsDto[] body = response.getBody();
-            if (body == null) {
-                return List.of();
-            }
-            return Arrays.asList(body);
-        } catch (URISyntaxException e) {
-            throw new IllegalArgumentException("Invalid stats service URL", e);
+
+        URI uri = builder.build().toUri();
+        ResponseEntity<ViewStatsDto[]> response =
+                restTemplate.exchange(uri, HttpMethod.GET, null, ViewStatsDto[].class);
+        ViewStatsDto[] body = response.getBody();
+        if (body == null) {
+            return List.of();
         }
+        return Arrays.asList(body);
     }
 
-    private String buildQuery(MultiValueMap<String, String> params) {
-        StringBuilder sb = new StringBuilder("?");
-        boolean first = true;
-        for (String key : params.keySet()) {
-            for (String value : params.get(key)) {
-                if (!first) {
-                    sb.append("&");
-                }
-                sb.append(encode(key)).append("=").append(encode(value));
-                first = false;
-            }
-        }
-        return sb.toString();
-    }
-
-    private String encode(String value) {
-        return URLEncoder.encode(value, StandardCharsets.UTF_8);
-    }
+    // buildQuery больше не нужен
 }
 

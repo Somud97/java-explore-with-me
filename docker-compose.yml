@@ -21,10 +21,28 @@ services:
     depends_on:
       - stats-db
 
-  ewm-service:
-    image: nginx:alpine
-    ports:
-      - "8080:8080"
-
   ewm-db:
     image: postgres:16.1
+    container_name: ewm-db
+    environment:
+      POSTGRES_DB: ewm
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+
+  ewm-service:
+    build: ./main/main-server
+    container_name: ewm-main-service
+    environment:
+      POSTGRES_HOST: ewm-db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ewm
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      STATS_SERVER_URL: http://stats-server:9090
+    ports:
+      - "8080:8080"
+    depends_on:
+      - ewm-db
+      - stats-server
