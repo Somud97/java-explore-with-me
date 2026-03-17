@@ -37,10 +37,10 @@ public class PublicEventController {
                                            @RequestParam(defaultValue = "0") int from,
                                            @RequestParam(defaultValue = "10") int size,
                                            HttpServletRequest request) {
-        // Фиксируем hit до обработки, чтобы тест статистики видел +1 даже при ошибке (и один hit на один запрос)
         statsHitService.hit(request.getRequestURI(), request);
+        int safeSize = size <= 0 ? 10 : size;
         List<EventShortDto> events = eventService.getEventsPublic(text, categories, paid, rangeStart,
-                rangeEnd, onlyAvailable, sort, from, size);
+                rangeEnd, onlyAvailable, sort, from, safeSize);
         return events;
     }
 

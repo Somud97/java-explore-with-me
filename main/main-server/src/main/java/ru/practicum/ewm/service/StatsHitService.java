@@ -27,18 +27,32 @@ public class StatsHitService {
     private String appName;
 
     public void hit(String uri, HttpServletRequest request) {
-        try {
-            String safeApp = truncate(appName, 255);
-            String safeUri = truncate(uri, 255);
-            String ip = truncate(getClientIp(request), 255);
-            EndpointHitDto dto = new EndpointHitDto();
-            dto.setApp(safeApp);
-            dto.setUri(safeUri);
-            dto.setIp(ip);
-            dto.setTimestamp(LocalDateTime.now().format(FORMATTER));
-            statsClient.hit(dto);
-        } catch (Exception e) {
-            log.warn("Не удалось отправить hit в stats: {}", e.getMessage());
+        String safeApp = truncate(appName, 255);
+        String safeUri = truncate(uri, 255);
+        String ip = truncate(getClientIp(request), 255);
+        EndpointHitDto dto = new EndpointHitDto();
+        dto.setApp(safeApp);
+        dto.setUri(safeUri);
+        dto.setIp(ip);
+        dto.setTimestamp(LocalDateTime.now().format(FORMATTER));
+
+        for (int attempt = 1; attempt <= 4; attempt++) {
+            try {
+                statsClient.hit(dto);
+                return;
+            } catch (Exception e) {
+                if (attempt == 4) {
+                    log.warn("Не удалось отправить hit в stats после {} попыток: {}", attempt, e.getMessage());
+                    return;
+                }
+                try {
+                    Thread.sleep(80L * attempt);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    log.warn("Отправка hit прервана: {}", ie.getMessage());
+                    return;
+                }
+            }
         }
     }
 

@@ -13,8 +13,10 @@ import ru.practicum.statsdto.EndpointHitDto;
 import ru.practicum.statsdto.ViewStatsDto;
 import ru.practicum.statsserver.service.StatsService;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 @RestController
@@ -23,6 +25,8 @@ public class StatsController {
 
     private static final DateTimeFormatter FORMATTER =
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final DateTimeFormatter DATE_ONLY =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     private final StatsService statsService;
 
@@ -41,13 +45,29 @@ public class StatsController {
                                        @RequestParam String end,
                                        @RequestParam(required = false) List<String> uris,
                                        @RequestParam(defaultValue = "false") boolean unique) {
-        LocalDateTime startDt = LocalDateTime.parse(start, FORMATTER);
-        LocalDateTime endDt = LocalDateTime.parse(end, FORMATTER);
-        // По спецификации: start не может быть позже end
+        LocalDateTime startDt = parseDateTime(start);
+        LocalDateTime endDt = parseDateTime(end);
         if (startDt.isAfter(endDt)) {
             throw new IllegalArgumentException("start must be before end");
         }
         return statsService.getStats(startDt, endDt, uris, unique);
+    }
+
+    /** Устойчивый парсинг даты: полный формат или только дата (при обрезанном URL). */
+    private static LocalDateTime parseDateTime(String value) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException("Date must not be blank");
+        }
+        String trimmed = value.trim();
+        try {
+            return LocalDateTime.parse(trimmed, FORMATTER);
+        } catch (DateTimeParseException e) {
+            try {
+                return LocalDate.parse(trimmed, DATE_ONLY).atStartOfDay();
+            } catch (DateTimeParseException e2) {
+                throw new IllegalArgumentException("Invalid date format. Use yyyy-MM-dd HH:mm:ss", e);
+            }
+        }
     }
 }
 

@@ -213,8 +213,9 @@ public class EventServiceImpl implements EventService {
         }
         Boolean only = onlyAvailable != null ? onlyAvailable : false;
         List<Long> categoriesParam = (categories != null && !categories.isEmpty()) ? categories : null;
+        int pageSize = size <= 0 ? 10 : size;
         List<Event> events = eventRepository.findPublicEvents(text, categoriesParam, paid, start, end, only,
-                PageRequest.of(from / size, size));
+                PageRequest.of(from / pageSize, pageSize));
         // Жёсткая доп. фильтрация по параметрам запроса,
         // чтобы в ответе не было ни одного события, противоречащего text/categories/paid.
         List<Event> strictlyFiltered = events.stream()
@@ -263,13 +264,24 @@ public class EventServiceImpl implements EventService {
         if (uris.isEmpty()) return Map.of();
         LocalDateTime from = start != null ? start : LocalDateTime.now().minusYears(1);
         LocalDateTime to = end != null ? end : LocalDateTime.now().plusMinutes(1);
-        try {
-            List<ViewStatsDto> stats = statsClient.getStats(from, to, uris, true);
-            return StatsViewHelper.eventViewsFromStats(stats);
-        } catch (Exception e) {
-            log.warn("Не удалось получить статистику просмотров: {}", e.getMessage());
-            return new HashMap<>();
+        for (int attempt = 1; attempt <= 2; attempt++) {
+            try {
+                List<ViewStatsDto> stats = statsClient.getStats(from, to, uris, true);
+                return StatsViewHelper.eventViewsFromStats(stats);
+            } catch (Exception e) {
+                if (attempt == 2) {
+                    log.warn("Не удалось получить статистику просмотров: {}", e.getMessage());
+                    return new HashMap<>();
+                }
+                try {
+                    Thread.sleep(30);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    return new HashMap<>();
+                }
+            }
         }
+        return new HashMap<>();
     }
 
     private void applyUserUpdate(Event event, UpdateEventUserRequest request) {
