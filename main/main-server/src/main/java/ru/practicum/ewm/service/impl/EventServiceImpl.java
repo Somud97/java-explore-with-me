@@ -212,7 +212,8 @@ public class EventServiceImpl implements EventService {
             end = LocalDateTime.of(3000, 1, 1, 0, 0);
         }
         Boolean only = onlyAvailable != null ? onlyAvailable : false;
-        List<Event> events = eventRepository.findPublicEvents(text, categories, paid, start, end, only,
+        List<Long> categoriesParam = (categories != null && !categories.isEmpty()) ? categories : null;
+        List<Event> events = eventRepository.findPublicEvents(text, categoriesParam, paid, start, end, only,
                 PageRequest.of(from / size, size));
         // Жёсткая доп. фильтрация по параметрам запроса,
         // чтобы в ответе не было ни одного события, противоречащего text/categories/paid.
@@ -220,9 +221,8 @@ public class EventServiceImpl implements EventService {
                 .filter(e -> text == null
                         || (e.getAnnotation() != null
                         && e.getAnnotation().toLowerCase().contains(text.toLowerCase())))
-                .filter(e -> categories == null
-                        || categories.isEmpty()
-                        || categories.contains(e.getCategory().getId()))
+                .filter(e -> categoriesParam == null
+                        || categoriesParam.contains(e.getCategory().getId()))
                 .filter(e -> paid == null || e.getPaid().equals(paid))
                 .collect(Collectors.toList());
         List<EventShortDto> shortList = toShortWithStats(strictlyFiltered);
